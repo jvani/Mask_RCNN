@@ -2274,7 +2274,8 @@ class MaskRCNN():
             "*epoch*", "{epoch:04d}")
 
     def train(self, train_dataset, val_dataset, learning_rate, epochs, layers,
-              augmentation=None, custom_callbacks=None, no_augmentation_sources=None):
+              augmentation=None, custom_callbacks=None, no_augmentation_sources=None,
+              workers=None, use_multiprocessing=True):
         """Train the model.
         train_dataset, val_dataset: Training and validation Dataset objects.
         learning_rate: The learning rate to train with
@@ -2306,6 +2307,8 @@ class MaskRCNN():
         no_augmentation_sources: Optional. List of sources to exclude for
             augmentation. A source is string that identifies a dataset and is
             defined in the Dataset class.
+        workers: Optional. Explicitly set N workers.
+        use_multiprocessing: Optional. Bool use_multiprocessing.
         """
         assert self.mode == "training", "Create model in training mode."
 
@@ -2358,7 +2361,7 @@ class MaskRCNN():
         # https://github.com/matterport/Mask_RCNN/issues/13#issuecomment-353124009
         if os.name is 'nt':
             workers = 0
-        else:
+        elif workers is None:
             workers = multiprocessing.cpu_count()
 
         self.keras_model.fit_generator(
@@ -2371,7 +2374,7 @@ class MaskRCNN():
             validation_steps=self.config.VALIDATION_STEPS,
             max_queue_size=100,
             workers=workers,
-            use_multiprocessing=True,
+            use_multiprocessing=use_multiprocessing,
         )
         self.epoch = max(self.epoch, epochs)
 
